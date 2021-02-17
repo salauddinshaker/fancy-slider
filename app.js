@@ -1,11 +1,21 @@
 const imagesArea = document.querySelector('.images');
 const gallery = document.querySelector('.gallery');
 const galleryHeader = document.querySelector('.gallery-header');
-const searchBtn = document.getElementById('search-btn');
+let searchBtn = document.getElementById('search-btn');
 const sliderBtn = document.getElementById('create-slider');
 const sliderContainer = document.getElementById('sliders');
 // selected image 
 let sliders = [];
+
+document.getElementById('search')
+.addEventListener("keypress", function(event){
+  if(event.key == 'Enter'){
+    document.getElementById('search-btn').click();
+  }
+  
+});
+
+
 
 
 // If this key doesn't work
@@ -29,17 +39,21 @@ const showImages = (images) => {
 }
 
 const getImages = (query) => {
-  fetch(`https://pixabay.com/api/?key=${KEY}=${query}&image_type=photo&pretty=true`)
+
+  const url = (`https://pixabay.com/api/?key=${KEY}=${query}&image_type=photo&pretty=true`)
+  toggoleSpinner();
+ 
+  fetch(url)
     .then(response => response.json())
-    .then(data => showImages(data.hitS))
+    .then(data => showImages(data.hits))
     .catch(err => console.log(err))
-}
+};
 
 let slideIndex = 0;
 const selectItem = (event, img) => {
   let element = event.target;
   element.classList.add('added');
- 
+
   let item = sliders.indexOf(img);
   if (item === -1) {
     sliders.push(img);
@@ -67,56 +81,89 @@ const createSlider = () => {
   document.querySelector('.main').style.display = 'block';
   // hide image aria
   imagesArea.style.display = 'none';
-  const duration = document.getElementById('duration').value || 1000;
-  sliders.forEach(slide => {
-    let item = document.createElement('div')
-    item.className = "slider-item";
-    item.innerHTML = `<img class="w-100"
+ let duration = document.getElementById('duration').value || 1000;
+
+  if (duration <=0) {
+    duration = 1000;
+    sliders.forEach(slide => {
+      let item = document.createElement('div')
+      item.className = "slider-item";
+      item.innerHTML = `<img class="w-100"
+        src="${slide}"
+        alt="">`;
+      sliderContainer.appendChild(item)
+    })
+    changeSlide(0)
+    timer = setInterval(function () {
+      slideIndex++;
+      changeSlide(slideIndex);
+    }, duration);
+  }
+  else {
+
+    sliders.forEach(slide => {
+      let item = document.createElement('div')
+      item.className = "slider-item";
+      item.innerHTML = `<img class="w-100"
     src="${slide}"
     alt="">`;
-    sliderContainer.appendChild(item)
-  })
-  changeSlide(0)
-  timer = setInterval(function () {
-    slideIndex++;
-    changeSlide(slideIndex);
-  }, duration);
-}
-
-// change slider index 
-const changeItem = index => {
-  changeSlide(slideIndex += index);
-}
-
-// change slide item
-const changeSlide = (index) => {
-
-  const items = document.querySelectorAll('.slider-item');
-  if (index < 0) {
-    slideIndex = items.length - 1
-    index = slideIndex;
-  };
-
-  if (index >= items.length) {
-    index = 0;
-    slideIndex = 0;
+      sliderContainer.appendChild(item)
+    })
+    changeSlide(0)
+    timer = setInterval(function () {
+      slideIndex++;
+      changeSlide(slideIndex);
+    }, duration);
   }
 
-  items.forEach(item => {
-    item.style.display = "none"
-  })
-
-  items[index].style.display = "block"
 }
 
-searchBtn.addEventListener('click', function () {
-  document.querySelector('.main').style.display = 'none';
-  clearInterval(timer);
-  const search = document.getElementById('search');
-  getImages(search.value)
-  sliders.length = 0;
-})
 
-sliderBtn.addEventListener('click', function () {
-  createSlider()
-})
+
+
+
+  // change slider index 
+  const changeItem = index => {
+    changeSlide(slideIndex += index);
+  }
+
+  // change slide item
+  const changeSlide = (index) => {
+
+    const items = document.querySelectorAll('.slider-item');
+    if (index < 0) {
+      slideIndex = items.length - 1
+      index = slideIndex;
+    };
+
+    if (index >= items.length) {
+      index = 0;
+      slideIndex = 0;
+    }
+
+    items.forEach(item => {
+      item.style.display = "none"
+    })
+
+    items[index].style.display = "block"
+  }
+
+  searchBtn.addEventListener('click', function () {
+    document.querySelector('.main').style.display = 'none';
+    clearInterval(timer);
+    const search = document.getElementById('search');
+    getImages(search.value)
+    sliders.length = 0;
+  })
+
+  sliderBtn.addEventListener('click', function () {
+    createSlider()
+  });
+
+
+  const toggoleSpinner = () => {
+    const spinner = document.getElementById('loading-spinner');
+    spinner.classList.remove('d-none');
+    spinner.classList.add('d-none');
+   
+  }
